@@ -6,15 +6,15 @@ try:
     from cStringIO import StringIO
 except ImportError:
     from StringIO import StringIO
-
-
+    
 class XMLTree(object):
     def __init__(self, node):
         self.nodes = {}
         self.node = node
         for n in node:
             if len(n.getchildren()):
-                xmlnode = XMLTree(n)
+                nodetype = type(n.tag,  (XMLTree,), {})
+                xmlnode = nodetype(n)
             else:
                 xmlnode = XMLNode(n)
             if n.tag in self.nodes:
@@ -36,6 +36,9 @@ class XMLTree(object):
 
     def __str__(self):
         return unicode(self).encode('utf-8')
+
+    def __repr__(self):
+        return unicode(self.node).encode('utf-8')
 
     def __getattr__(self, attr):
         return self.nodes[attr]
