@@ -6,15 +6,28 @@ try:
     from cStringIO import StringIO
 except ImportError:
     from StringIO import StringIO
-    
+
+class FactoryNode(object):
+    _classes = {}
+
+    @classmethod
+    def create_class(cls, node, parent):
+        key = (node, parent)
+        if not cls._classes.has_key(key):
+            cls._classes[key] = type(node.tag, (parent,), {})
+        return cls._classes[key]
+
+    @classmethod
+    def create_instance(cls, node, parent):
+        return cls.create_class(node, parent)(node)
+
 class XMLTree(object):
     def __init__(self, node):
         self.nodes = {}
         self.node = node
         for n in node:
             if len(n.getchildren()):
-                nodetype = type(n.tag,  (XMLTree,), {})
-                xmlnode = nodetype(n)
+                xmlnode = FactoryNode.create_instance(n, XMLTree)
             else:
                 xmlnode = XMLNode(n)
             if n.tag in self.nodes:
